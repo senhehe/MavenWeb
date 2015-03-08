@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:tx="http://www.springframework.org/schema/tx" 
+    xmlns:aop="http://www.springframework.org/schema/aop" 
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/tx
+    http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+    http://www.springframework.org/schema/aop
+    http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
+
+	<bean id="dataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName">
+			<value>com.mysql.jdbc.Driver</value>
+		</property>
+		<property name="url">
+			<value>jdbc:mysql://localhost:3306/shop</value>
+		</property>
+		<property name="username">
+			<value>root</value>
+		</property>
+		<property name="password">
+			<value>root</value>
+		</property>
+	</bean>
+	
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+		<property name="dataSource">
+			<ref bean="dataSource" />
+		</property>
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">
+					org.hibernate.dialect.MySQLDialect
+				</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.format_sql">true</prop>
+			</props>
+		</property>
+		<!-- <property name="mappingDirectoryLocations">
+            <value>classpath:com/sen/entity</value>
+        </property> -->
+		<property name="mappingResources">
+			<list>
+				<value>com/sen/entity/User.hbm.xml</value>
+				<value>com/sen/entity/Product.hbm.xml</value>
+				<value>com/sen/entity/Orderitem.hbm.xml</value>
+				<value>com/sen/entity/Order.hbm.xml</value>
+			</list>
+		</property>
+	</bean>
+
+	<!-- 定义hibernateTemplate -->
+	<bean id="hibernateTemplate" class="org.springframework.orm.hibernate3.HibernateTemplate">
+		<property name="sessionFactory">
+			<ref bean="sessionFactory"/>
+		</property>
+	</bean>
+	
+	<!-- 定义HibernateTransactionManager -->
+	<bean id="txManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+
+	<!-- 配置DAO组件  -->
+	<bean id="udao" class="com.sen.dao.impl.UserDAOImpl">
+		<property name="hibernateTemplate">
+			<ref bean="hibernateTemplate"/>
+		</property>
+	</bean>
+	
+	<bean id="pdao" class="com.sen.dao.impl.ProductDAOImpl">
+		<property name="hibernateTemplate">
+			<ref bean="hibernateTemplate"/>
+		</property>
+	</bean>
+	
+	<bean id="odao" class="com.sen.dao.impl.OrderDAOImpl">
+		<property name="hibernateTemplate">
+			<ref bean="hibernateTemplate"/>
+		</property>
+	</bean>
+	
+	<bean id="oidao" class="com.sen.dao.impl.OrderItemDAOImpl">
+		<property name="hibernateTemplate">
+			<ref bean="hibernateTemplate"/>
+		</property>
+	</bean>
+	
+	<!-- 配置业务逻辑组件 -->
+	<bean id="us" class="com.sen.service.impl.UserServiceImpl">
+		<property name="udao" ref="udao"></property>
+	</bean>
+	
+	<bean id="ps" class="com.sen.service.impl.ProductServiceImpl">
+		<property name="pdao" ref="pdao"></property>
+	</bean>
+	
+	<bean id="os" class="com.sen.service.impl.OrderServiceImpl">
+		<property name="odao" ref="odao"></property>
+	</bean>
+	
+	<bean id="ois" class="com.sen.service.impl.OrderItemServiceImpl">
+		<property name="oidao" ref="oidao"></property>
+	</bean>
+	
+	<!-- 创建Struts2 Action实例 -->
+	<bean id="userAction" class="com.sen.action.UserAction" scope="prototype">
+		<property name="us" ref="us"></property>
+	</bean>
+	
+	<bean id="indexAction" class="com.sen.action.IndexAction" scope="prototype">
+		<property name="ps" ref="ps"></property>
+	</bean>
+	
+	<bean id="orderAction" class="com.sen.action.OrderAction" scope="prototype">
+		<property name="us" ref="us"></property>
+		<property name="os" ref="os"></property>
+		<property name="ois" ref="ois"></property>
+	</bean>
+	
+	<bean id="cartItemAction" class="com.sen.action.CartItemAction" scope="prototype">
+		<property name="ps" ref="ps"></property>
+	</bean>
+	
+	<bean id="logInterceptor" class="com.sen.interceptor.LogInterceptor" scope="prototype"></bean>
+	<bean id="loginInterceptor" class="com.sen.interceptor.LoginInterceptor" scope="prototype"></bean>
+	
+	<!-- 声明式事务配置 -->
+	<!-- 配置事务的传播特性 -->
+ 	<tx:advice id="txAdvice" transaction-manager="txManager" >
+ 		<tx:attributes>
+ 			<tx:method name="add*" propagation="REQUIRED"/>
+ 		</tx:attributes>
+ 	</tx:advice>
+ 	
+ 	<!-- 配置哪些类哪些方法使用事务 -->
+ 	<aop:config>
+ 		<aop:pointcut id="addServiceMethod" expression="execution(* com.sen.service.impl.*.*(..))"/>
+ 		<aop:advisor advice-ref="txAdvice" pointcut-ref="addServiceMethod"/>
+ 	</aop:config>
+
+</beans>

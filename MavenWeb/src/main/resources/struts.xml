@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+	"http://struts.apache.org/dtds/struts-2.3.dtd">
+<struts>
+	<constant name="struts.devMode" value="true" />
+	<constant name="struts.i18n.encoding" value="UTF-8"></constant>
+	<constant name="struts.custom.i18n.resources" value="messageResource" />
+	<constant name="struts.objectFactory" value="spring" />
+	
+	<package name="base" namespace="/" extends="struts-default">
+		<interceptors>
+            <interceptor name="logInterceptor" class="logInterceptor"/>
+            <interceptor name="loginInterceptor" class="loginInterceptor"/>
+            <interceptor-stack name="basicStack">  
+                <interceptor-ref name="logInterceptor"/>  
+                <interceptor-ref name="defaultStack"/>  
+            </interceptor-stack>  
+            <interceptor-stack name="loginStack">  
+                <interceptor-ref name="logInterceptor"/>  
+                <interceptor-ref name="defaultStack"/>  
+                <interceptor-ref name="loginInterceptor"/>
+            </interceptor-stack>  
+        </interceptors>
+        <default-interceptor-ref name="basicStack"/>
+        
+        <global-results>  
+            <result name="exceptionPage">/error.jsp</result>  
+            <result name="login" type="redirect">/login.jsp</result>  
+        </global-results>  
+        <global-exception-mappings>  
+            <exception-mapping result="exceptionPage" exception="Exception" />
+        </global-exception-mappings>  
+        
+        <action name="reg" class="userAction" method="reg">
+			<result name="success">/reg_succ.jsp</result>
+			<result name="input">/register.jsp</result>
+			<result name="error">/reg_fail.jsp</result>
+		</action>
+        <action name="login" class="userAction" method="login">
+			<result name="success" type="redirectAction">renderindex</result>
+			<result name="input">/login.jsp</result>
+			<result name="error">/login_fail.jsp</result>
+		</action>
+        <action name="loginout" class="userAction" method="loginout">
+			<result name="success" type="redirectAction">renderindex</result>
+		</action>
+        
+        <action name="renderindex" class="indexAction">
+			<result name="success">/index.jsp</result>
+		</action>
+       	
+	</package>
+	
+	<package name="cart" extends="base,json-default">
+		<default-interceptor-ref name="loginStack"/>
+		<action name="addcart" class="cartItemAction" method="addCart">
+			<result type="stream">
+				<param name="contentType">text/html</param>
+				<param name="inputName">inputStream</param>
+			</result>
+		</action>
+		<action name="updatecart" class="cartItemAction" method="updateCart">
+			<result name="success" type="json">
+				<param name="includeProperties">mycart.*</param>
+			</result>
+		</action>
+		<action name="*cart" class="cartItemAction" method="{1}Cart">
+			<result name="success">/viewcart.jsp</result>
+		</action>
+		
+	</package>
+	
+	<package name="order" extends="base">
+		<default-interceptor-ref name="loginStack"/>
+		<action name="saveOrder" class="orderAction" method="saveOrder">
+			<result name="success">/addorder_succ.jsp</result>
+			<result name="input">/addorder.jsp</result>
+			<result name="error">/addorder.jsp</result>
+		</action>
+		
+		<action name="viewOrder" class="orderAction" method="viewOrder">
+			<result name="success">/vieworder.jsp</result>
+		</action>
+		
+		<action name="viewOrderItems" class="orderAction" method="viewOrderItems">
+			<result name="success">/orderdetail.jsp</result>
+		</action>
+	</package>
+</struts>

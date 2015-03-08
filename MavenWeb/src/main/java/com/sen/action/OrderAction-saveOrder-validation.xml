@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE validators PUBLIC
+        "-//OpenSymphony Group//XWork Validator 1.0.2//EN"
+        "http://www.opensymphony.com/xwork/xwork-validator-1.0.2.dtd">
+  
+<validators>  
+    <field name="linkman">
+        <field-validator type="requiredstring">
+        	<param name="trim">true</param>
+            <message key="validate_order_linkman"></message>
+        </field-validator>
+    </field>  
+    <field name="address">
+        <field-validator type="requiredstring">
+        	<param name="trim">true</param>
+            <message key="validate_order_address"></message>  
+        </field-validator>
+    </field>  
+    <field name="phone">
+        <field-validator type="requiredstring">
+        	<param name="trim">true</param>
+            <message key="validate_order_phone"></message>  
+        </field-validator>
+        <field-validator type="regex">
+    		<param name="expression"><![CDATA[((\d{11})|^((\d{7,8})|(\d{4}|\d{3})-(\d{7,8})|(\d{4}|\d{3})-(\d{7,8})-(\d{4}|\d{3}|\d{2}|\d{1})|(\d{7,8})-(\d{4}|\d{3}|\d{2}|\d{1}))$)]]></param>
+    		<message key="validate_order_phoneform"></message>
+    	</field-validator>
+    </field>  
+</validators>  
